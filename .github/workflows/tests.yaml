@@ -51,3 +51,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
       - run: python setup.py build_exe
         if: matrix.os == 'windows-latest'
+      - run: |
+          build\\exe.win-amd64-${{ matrix.python }}\\svtplay-dl.exe --version
+          mkdir svtplay-dl
+          xcopy /s build\\exe.win-amd64-${{ matrix.python }} svtplay-dl
+        if: matrix.os == 'windows-latest'
+      - run: 7z a -tzip svtplay-dl.zip svtplay-dl
+        if: matrix.os == 'windows-latest'
