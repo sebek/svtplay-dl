@@ -34,8 +34,8 @@ after_test:
   - "python setversion.py"
   - "python setup.py build_exe"
   - "dir /s build"
-  - "build\\exe.win32-3.7\\svtplay-dl.exe --version"
-  - "xcopy /s build\\exe.win32-3.7 svtplay-dl"
+  - "build\\exe.win32-%PYTHON_VERSION%\\svtplay-dl.exe --version"
+  - "xcopy /s build\\exe.win32-%PYTHON_VERSION% svtplay-dl"
   - "7z.exe a -tzip svtplay-dl.zip svtplay-dl"
   - IF "%APPVEYOR_PULL_REQUEST_NUMBER%"=="" python scripts/cibuild.py
 
