@@ -12,7 +12,6 @@ matrix:
       sudo: true # required workaround for https://github.com/travis-ci/travis-ci/issues/9815
       env: CIBUILD=1
 
-cache: pip
 install:
 - pip install -r requirements-dev.txt -r requirements.txt awscli
 script:
@@ -21,6 +20,7 @@ script:
   if [[ -z "$PRECOMMIT" ]]
   then
       pre-commit run --all-files --show-diff-on-failure
+      cat /home/travis/.cache/pre-commit/pre-commit.log
   fi
 - pytest -v --cov
 - make
