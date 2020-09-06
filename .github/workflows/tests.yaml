@@ -1,0 +1,53 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: Linux, python: '3.8', os: ubuntu-latest}
+          - {name: Windows, python: '3.8', os: windows-latest}
+          - {name: '3.7', python: '3.7', os: ubuntu-latest}
+          - {name: '3.6', python: '3.6', os: ubuntu-latest}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - name: update pip
+        run: |
+          pip install -U wheel
+          pip install -U setuptools
+          python -m pip install -U pip
+      - name: get pip cache dir
+        id: pip-cache
+        run: echo "::set-output name=dir::$(pip cache dir)"
+      - name: cache pip
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: pip|${{ runner.os }}|${{ matrix.python }}|${{ hashFiles('setup.py') }}|${{ hashFiles('requirements*.txt') }}
+      - name: set full Python version in PY env var
+        # See https://pre-commit.com/#github-actions-example
+        run: echo "::set-env name=PY::$(python -VV | sha256sum | cut -d' ' -f1)"
+      - name: install deps
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      - name: cache pre-commit
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - run: pre-commit run --all-files --show-diff-on-failure
+      - run: pytest -v --cov
+      - run: python setversion.py
+      - run: make
+        if: matrix.os == 'ubuntu-latest'
+      - run: python setup.py build_exe
+        if: matrix.os == 'windows-latest'
